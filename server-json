@@ -1,0 +1,42 @@
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Airtable Configuration
+const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+const BASE_ID = process.env.BASE_ID;
+const ALERTS_TABLE = 'Alert Log';
+const TRENDING_TABLE = 'Trending Intelligence';
+
+app.use(express.static('public'));
+
+// Endpoint to fetch Price Alerts from Airtable
+app.get('/api/alerts', async (req, res) => {
+    try {
+        const response = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${ALERTS_TABLE}?sort%5B0%5D%5Bfield%5D=Timestamp&sort%5B0%5D%5Bdirection%5D=desc`, {
+            headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` }
+        });
+        res.json(response.data.records);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch alerts from Airtable' });
+    }
+});
+
+// Endpoint to fetch Trending Coins from Airtable
+app.get('/api/trending', async (req, res) => {
+    try {
+        const response = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${TRENDING_TABLE}?sort%5B0%5D%5Bfield%5D=Timestamp&sort%5B0%5D%5Bdirection%5D=desc`, {
+            headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` }
+        });
+        res.json(response.data.records);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch trending coins' });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
